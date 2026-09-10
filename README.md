@@ -37,6 +37,13 @@ server sends no CORS headers and answers `OPTIONS` with a 404, so a browser at
 shim with no logic of its own; see *Things I added that would not exist in
 production* below.
 
+**GPS is hardcoded when the device will not give a fix.** The form asks the
+browser for a location. If that fails — permission denied, no GPS on a desktop,
+or no answer within 8 seconds — it falls back to **Karachi city centre,
+`24.8607, 67.0011`**, and says so on screen. Both fields stay editable. The
+brief says geolocation is not what is being tested, so a missing fix never
+blocks a report.
+
 ---
 
 ## The one rule
