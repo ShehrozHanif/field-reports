@@ -9,9 +9,17 @@ import { validate } from '@/lib/sync-core.mjs';
  * brief says geolocation APIs are not what is being tested, so we fall back
  * loudly rather than blocking the worker from filing a report.
  */
-const FALLBACK = { lat: 24.8607, lng: 67.0011 };
+const FALLBACK = { lat: '24.8607', lng: '67.0011' };
 
-type Fix = { lat: number; lng: number; source: 'device' | 'fallback' | 'manual' };
+/**
+ * Coordinates are held as the text the worker typed, not as numbers. A number
+ * cannot hold "24." - React re-rendered it as "24" and swallowed the dot, so
+ * typing 24.9 produced 249. Parsed once, on submit.
+ */
+type Fix = { lat: string; lng: string; source: 'device' | 'fallback' | 'manual' };
+
+/** Empty is not zero. Number('') is 0, which would quietly file a report at 0, 0. */
+const toCoord = (text: string) => (text.trim() === '' ? NaN : Number(text));
 
 export default function ReportForm() {
   const [outlet, setOutlet] = useState('');
@@ -36,7 +44,11 @@ export default function ReportForm() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setFix({ lat: +pos.coords.latitude.toFixed(6), lng: +pos.coords.longitude.toFixed(6), source: 'device' });
+        setFix({
+          lat: String(+pos.coords.latitude.toFixed(6)),
+          lng: String(+pos.coords.longitude.toFixed(6)),
+          source: 'device',
+        });
         setLocating(false);
       },
       () => setLocating(false),
@@ -52,8 +64,8 @@ export default function ReportForm() {
       outlet_name: outlet,
       finding,
       action_needed: action,
-      lat: fix.lat,
-      lng: fix.lng,
+      lat: toCoord(fix.lat),
+      lng: toCoord(fix.lng),
     };
 
     const found = validate(input);
@@ -116,13 +128,13 @@ export default function ReportForm() {
             aria-label="Latitude"
             inputMode="decimal"
             value={fix.lat}
-            onChange={(e) => setFix({ ...fix, lat: Number(e.target.value), source: 'manual' })}
+            onChange={(e) => setFix({ ...fix, lat: e.target.value, source: 'manual' })}
           />
           <input
             aria-label="Longitude"
             inputMode="decimal"
             value={fix.lng}
-            onChange={(e) => setFix({ ...fix, lng: Number(e.target.value), source: 'manual' })}
+            onChange={(e) => setFix({ ...fix, lng: e.target.value, source: 'manual' })}
           />
         </div>
         {(errors.lat || errors.lng) && <div className="err">{errors.lat || errors.lng}</div>}

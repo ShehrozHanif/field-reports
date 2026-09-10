@@ -296,7 +296,9 @@ export function validate(input) {
   if (!input.finding || !input.finding.trim()) errors.finding = 'Required';
   if (!input.action_needed || !input.action_needed.trim()) errors.action_needed = 'Required';
   if (typeof input.lat !== 'number' || !Number.isFinite(input.lat)) errors.lat = 'Need a number';
+  else if (input.lat < -90 || input.lat > 90) errors.lat = 'Latitude must be between -90 and 90';
   if (typeof input.lng !== 'number' || !Number.isFinite(input.lng)) errors.lng = 'Need a number';
+  else if (input.lng < -180 || input.lng > 180) errors.lng = 'Longitude must be between -180 and 180';
   return errors;
 }
 
