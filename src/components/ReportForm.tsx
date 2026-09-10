@@ -21,6 +21,7 @@ export default function ReportForm() {
   const [locating, setLocating] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
 
   // Guards a double tap on a slow phone. Two submits a millisecond apart would
   // be two different client_report_ids carrying identical content, and the
@@ -61,12 +62,19 @@ export default function ReportForm() {
 
     busy.current = true;
     setSubmitting(true);
+    setFailed(null);
     try {
       const item = await enqueue(input);
       setOutlet('');
       setFinding('');
       setAction('');
       setSaved(item.client_report_id);
+    } catch (err) {
+      // Storage full, private mode with IndexedDB disabled, a blocked upgrade.
+      // The report is NOT saved, so we must not clear the form and must not
+      // pretend otherwise - the text on screen is the only copy that exists.
+      setSaved(null);
+      setFailed(err instanceof Error ? err.message : 'could not save on this device');
     } finally {
       busy.current = false;
       setSubmitting(false);
@@ -133,13 +141,20 @@ export default function ReportForm() {
         {submitting ? 'Saving...' : 'Submit report'}
       </button>
 
-      {saved && (
+      {saved && !failed && (
         <div className="note" style={{ marginTop: 12 }}>
           Saved on this device and queued. It has <strong>not</strong> been sent yet - watch the
           queue below for the server&apos;s confirmation.
         </div>
       )}
 
+      {failed && (
+        <div className="note" style={{ marginTop: 12, borderColor: '#e4bcbc', background: '#fbf1f1' }}>
+          <strong>Not saved.</strong> This device would not store the report ({failed}). Nothing has
+          been queued and nothing has been sent. Do not close this screen - the text above is the
+          only copy.
+        </div>
+      )}
     </form>
   );
 }
