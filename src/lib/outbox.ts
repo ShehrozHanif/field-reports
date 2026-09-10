@@ -103,6 +103,14 @@ export async function drain(): Promise<void> {
   try {
     await withLock(async () => {
       for (;;) {
+        // The device itself says there is no network: do not send, and do not
+        // spend an attempt. Attempts fired into a dead network grow the backoff,
+        // so the first real 503 after reconnecting waited 30s instead of 1s -
+        // measured at 90s to sync three reports. The 'online' event restarts
+        // this loop. navigator.onLine can only skip a send here; it never
+        // decides whether a report was delivered.
+        if (!navigator.onLine) return;
+
         const item = pickNext(cache, Date.now());
         if (!item) return;
 

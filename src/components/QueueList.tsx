@@ -22,14 +22,17 @@ const LABEL: Record<QueueItem['status'], string> = {
   rejected: 'Rejected',
 };
 
-function countdown(item: QueueItem, now: number): string {
+function countdown(item: QueueItem, now: number, online: boolean): string {
   if (item.status !== 'queued') return '';
+  // The outbox does not send while the device reports no network, so a
+  // countdown here would promise a retry that is not going to happen.
+  if (!online) return 'waiting for a connection';
   const secs = Math.ceil((item.next_attempt_at - now) / 1000);
   if (secs <= 0) return 'retrying now';
   return `retrying in ${secs}s`;
 }
 
-export default function QueueList({ items }: { items: QueueItem[] }) {
+export default function QueueList({ items, online }: { items: QueueItem[]; online: boolean }) {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -69,7 +72,7 @@ export default function QueueList({ items }: { items: QueueItem[] }) {
               <>
                 saved on this device, not confirmed by the server yet
                 {' - '}
-                {countdown(item, now)}
+                {countdown(item, now, online)}
                 {item.attempts > 0 && ` - ${item.attempts} attempt${item.attempts === 1 ? '' : 's'} so far`}
                 {item.last_error && ` - last: ${item.last_error}`}
               </>

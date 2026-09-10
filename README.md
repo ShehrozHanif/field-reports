@@ -99,11 +99,17 @@ Backoff is exponential with jitter, 1s doubling to a 30s ceiling. The jitter is
 not decoration: without it, a queue that filled up while offline fires every item
 on the same tick the instant the network returns.
 
-When the browser fires `online`, items waiting out a backoff are made due
-immediately (`wakeForReconnect()`), because after a few offline failures that
-wait is up to 30 seconds of a queue that should be moving. A `429` wait is left
-alone, since the server asked for it. `online` is only a hint: if it is wrong,
-the send fails and the item goes straight back into backoff.
+While the device reports no network (`navigator.onLine === false`) the queue does
+not send at all, and does not count an attempt. Attempts fired into a dead
+network used to grow the backoff, so after reconnecting, each of the server's
+deliberate 503s cost up to 30 seconds instead of one: a real-browser test took
+90 seconds to sync three reports. When the browser fires `online`, the loop
+restarts and anything still waiting out a backoff is made due immediately
+(`wakeForReconnect()`). A `429` wait is left alone, since the server asked for it.
+
+`navigator.onLine` is only a hint, and it is only ever used to *skip* a send,
+never to decide whether a report was delivered. When it claims a connection
+that is not really there, the send fails and backs off as normal.
 
 ---
 

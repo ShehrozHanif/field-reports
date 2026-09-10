@@ -50,7 +50,7 @@ export default function Page() {
       </div>
 
       <ReportForm />
-      <QueueList items={items} />
+      <QueueList items={items} online={online} />
       <ServerCheck />
     </main>
   );
