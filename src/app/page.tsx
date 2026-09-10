@@ -15,6 +15,14 @@ export default function Page() {
     const unsubscribe = subscribe(setItems);
     void start();
 
+    // Lets the app be opened with no network at all. See public/sw.js.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // Not fatal: without it the queue still works, the app just cannot be
+        // cold-launched offline. Nothing about delivery depends on this.
+      });
+    }
+
     setOnline(navigator.onLine);
     const up = () => setOnline(true);
     const down = () => setOnline(false);
