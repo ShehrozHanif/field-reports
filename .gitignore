@@ -1,0 +1,15 @@
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+.env*.local
+
+# The assessment's mock server is deliberately NOT committed.
+# It hashes its own source to prove it was not edited, and a copy that picked up
+# a stray line ending on its way through a zip would fail that check for no
+# reason. Drop the original file from the assessment folder in here to run it.
+mock-server.js
+
+# Local harness state, stands in for IndexedDB.
+test/.queue-state.json
