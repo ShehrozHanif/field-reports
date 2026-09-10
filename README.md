@@ -285,3 +285,21 @@ failure. It is worth naming because it sits in the path of every request during
 the demo: if that proxy ever turned a dropped connection into a `2xx`, the entire
 guarantee would evaporate. It does not. But in production the app would talk to
 the API directly and this file would be deleted.
+
+## About the commit history
+
+I built this with Claude Code as a pair programmer, which the brief allows, and
+every commit says so in its `Co-Authored-By` line.
+
+The first ten commits are only seconds apart. The first version was built in one
+Claude Code session and committed at the end, split so that each commit is one
+idea you can read on its own. Their order is meaningful; their timestamps are
+not.
+
+Everything from `8a12c86` onwards came from a second pass: reviewing that
+version and testing it against the mock server in a real browser — offline in
+DevTools, the browser killed mid-send, the form used by hand. That found real
+problems, and each commit fixes one: the queue took 90 seconds to sync after
+reconnecting, typing a decimal into the GPS field produced `249`, and one label
+said "not yet with the server" about a report the server already had. A few of
+those were committed together once testing passed, so some share a timestamp.
