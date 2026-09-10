@@ -8,6 +8,7 @@ import {
   newItem,
   pickNext,
   recoverInterrupted,
+  wakeForReconnect,
 } from './sync-core.mjs';
 import type { QueueItem, ReportInput } from './sync-core.mjs';
 
@@ -125,6 +126,14 @@ export async function drain(): Promise<void> {
   }
 }
 
+/** Network is back: stop waiting out offline backoff, send now. */
+async function onReconnect(): Promise<void> {
+  const woken = wakeForReconnect(cache, Date.now());
+  for (const item of woken) await db.write(item);
+  if (woken.length) await refresh();
+  void drain();
+}
+
 export async function start(): Promise<void> {
   if (started) return;
   started = true;
@@ -138,7 +147,7 @@ export async function start(): Promise<void> {
   // navigator.onLine is a hint, not a fact - it goes true on a captive portal
   // and on a wifi network with no upstream. We use it to trigger a drain, never
   // to decide whether a report was delivered. Only the server decides that.
-  window.addEventListener('online', () => void drain());
+  window.addEventListener('online', () => void onReconnect());
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) void drain();
   });

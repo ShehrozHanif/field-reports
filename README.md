@@ -89,6 +89,12 @@ Backoff is exponential with jitter, 1s doubling to a 30s ceiling. The jitter is
 not decoration: without it, a queue that filled up while offline fires every item
 on the same tick the instant the network returns.
 
+When the browser fires `online`, items waiting out a backoff are made due
+immediately (`wakeForReconnect()`), because after a few offline failures that
+wait is up to 30 seconds of a queue that should be moving. A `429` wait is left
+alone, since the server asked for it. `online` is only a hint: if it is wrong,
+the send fails and the item goes straight back into backoff.
+
 ---
 
 ## Surviving a hard close

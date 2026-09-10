@@ -39,6 +39,7 @@ export const BASE_BACKOFF_MS: number;
 export const MAX_BACKOFF_MS: number;
 export const REQUEST_TIMEOUT_MS: number;
 export const NO_ANSWER: 0;
+export const RATE_LIMITED: string;
 
 export function classify(result: HttpResult): Outcome;
 export function backoffMs(attempts: number, random?: () => number): number;
@@ -50,6 +51,7 @@ export function applyOutcome(
 ): QueueItem;
 export function pickNext(items: QueueItem[], now: number): QueueItem | null;
 export function recoverInterrupted(items: QueueItem[], now: number): QueueItem[];
+export function wakeForReconnect(items: QueueItem[], now: number): QueueItem[];
 export function newItem(input: ReportInput, clientReportId: string, now: number): QueueItem;
 export function wireBody(item: QueueItem): Record<string, unknown>;
 export function validate(input: {

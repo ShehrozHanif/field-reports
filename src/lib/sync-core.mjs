@@ -24,6 +24,9 @@ export const REQUEST_TIMEOUT_MS = 20000;
 /** Our own status code for "the connection died before we heard anything". */
 export const NO_ANSWER = 0;
 
+/** last_error for a 429, so a reconnect does not cut short a wait the server asked for. */
+export const RATE_LIMITED = 'rate limited by server';
+
 /**
  * @typedef {Object} ReportPayload
  * @property {string} outlet_name
@@ -103,7 +106,7 @@ export function classify(result) {
     const secs = Number(result.retryAfter);
     return {
       kind: 'retry',
-      reason: 'rate limited by server',
+      reason: RATE_LIMITED,
       retryAfterMs: Number.isFinite(secs) && secs > 0 ? secs * 1000 : undefined,
     };
   }
@@ -222,6 +225,24 @@ export function recoverInterrupted(items, now) {
       next_attempt_at: now,
       last_error: 'app closed mid-send - retrying',
     }));
+}
+
+/**
+ * The device says the network is back. Items sitting out a backoff were mostly
+ * waiting because we were offline - after a few failed tries that wait is up
+ * to 30s, which is 30s of a worker staring at a queue that should be moving.
+ * So they become due now. A 429 wait is left alone: the server asked for it.
+ *
+ * Only a hint, like navigator.onLine itself. If the network is not really back,
+ * the send fails and the item goes straight back into backoff.
+ * @param {QueueItem[]} items
+ * @param {number} now
+ * @returns {QueueItem[]} the items that need rewriting
+ */
+export function wakeForReconnect(items, now) {
+  return items
+    .filter((i) => i.status === 'queued' && i.next_attempt_at > now && i.last_error !== RATE_LIMITED)
+    .map((i) => ({ ...i, next_attempt_at: now }));
 }
 
 /**
