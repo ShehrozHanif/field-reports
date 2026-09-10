@@ -9,7 +9,8 @@ import { clearSettled, retryNow } from '@/lib/outbox';
  *
  * The rule here is that nothing says "Sent" until the server has handed back a
  * report_id - either a 201 or a 409. Everything before that says, in plain
- * words, that the report is on the phone and not yet with the server. A worker
+ * words, that the report is on the phone and not yet confirmed. Not "not sent":
+ * after a save-then-drop the server already has it, we just have not heard. A worker
  * who is told a report went through when it did not is worse off than one who
  * is told nothing at all.
  */
@@ -66,7 +67,7 @@ export default function QueueList({ items }: { items: QueueItem[] }) {
 
             {item.status === 'queued' && (
               <>
-                saved on this device, not yet with the server
+                saved on this device, not confirmed by the server yet
                 {' - '}
                 {countdown(item, now)}
                 {item.attempts > 0 && ` - ${item.attempts} attempt${item.attempts === 1 ? '' : 's'} so far`}

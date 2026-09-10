@@ -143,9 +143,13 @@ They are graded on this and they should be: *"whether the user is ever told
 something was sent when it wasn't."*
 
 Nothing says **Confirmed** until the server has handed back a `report_id`, from a
-`201` or a `409`. Until then it says, in words, *"saved on this device, not yet
-with the server"*, with the attempt count, the reason for the last failure, and a
-live countdown to the next try.
+`201` or a `409`. Until then it says, in words, *"saved on this device, not
+confirmed by the server yet"*, with the attempt count, the reason for the last
+failure, and a live countdown to the next try.
+
+The wording is deliberate. After a save-then-drop the server *does* have the
+report, so "not yet with the server" would be false. "Not confirmed" is true
+in every case: we only claim what we have heard back.
 
 If the device itself refuses to store the report — storage full, IndexedDB
 disabled — the form does not clear and says plainly that nothing was saved and
