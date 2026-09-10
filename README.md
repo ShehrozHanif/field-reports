@@ -30,6 +30,9 @@ on its way through git or a zip would fail that check for no reason at all. Drop
 your original file into the project root and it will run. `.gitignore` has a note
 saying the same thing.
 
+Every run in this README was against the unmodified file, which reports
+`server_hash: f1da090727a5eb26`.
+
 The app talks to the mock server through `/api/...` on its own origin. The mock
 server sends no CORS headers and answers `OPTIONS` with a 404, so a browser at
 :3000 cannot call :4000 directly — and the brief says not to modify that file. So
